@@ -33,6 +33,8 @@ services:
         container_name: ui
         ports:
             - 8080:8080
+        depends_on:
+            - nimbus
     nimbus:
         image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
         command: nimbus -c nimbus.host=nimbus
@@ -51,9 +53,13 @@ services:
             - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
         labels:
             aliyun.scale: "3"
+        depends_on:
+            - nimbus
     topology:
         image: registry.aliyuncs.com/denverdino/storm-starter:1.0.0
         command: -c nimbus.host=nimbus jar /topology.jar org.apache.storm.starter.RollingTopWords production-topology remote
+        depends_on:
+            - nimbus
 networks:
   default:
     external:

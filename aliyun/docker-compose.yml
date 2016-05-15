@@ -8,6 +8,9 @@ services:
             - ADDITIONAL_ZOOKEEPER_1=server.1=0.0.0.0:2888:3888
             - ADDITIONAL_ZOOKEEPER_2=server.2=zk2.cloud:2888:3888 
             - ADDITIONAL_ZOOKEEPER_3=server.3=zk3.cloud:2888:3888
+            - affinity:role!=zookeeper
+        labels:
+            role: zookeeper
     zookeeper2:
         image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
         container_name: zk2.cloud
@@ -16,6 +19,9 @@ services:
             - ADDITIONAL_ZOOKEEPER_1=server.1=zk1.cloud:2888:3888
             - ADDITIONAL_ZOOKEEPER_2=server.2=0.0.0.0:2888:3888 
             - ADDITIONAL_ZOOKEEPER_3=server.3=zk3.cloud:2888:3888
+            - affinity:role!=zookeeper
+        labels:
+            role: zookeeper
     zookeeper3:
         image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
         container_name: zk3.cloud
@@ -24,6 +30,9 @@ services:
             - ADDITIONAL_ZOOKEEPER_1=server.1=zk1.cloud:2888:3888
             - ADDITIONAL_ZOOKEEPER_2=server.2=zk2.cloud:2888:3888 
             - ADDITIONAL_ZOOKEEPER_3=server.3=0.0.0.0:2888:3888
+            - affinity:role!=zookeeper
+        labels:
+            role: zookeeper
     ui:
         image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
         command: ui -c nimbus.host=nimbus
@@ -32,9 +41,11 @@ services:
         restart: always
         container_name: ui
         labels: 
-            aliyun.routing.port_80: storm-ui
+            aliyun.routing.port_8080: storm-ui
         ports:
             - 8080:8080
+        depends_on:
+            - nimbus
     nimbus:
         image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
         command: nimbus -c nimbus.host=nimbus
@@ -55,9 +66,14 @@ services:
             - affinity:role!=supervisor
             - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
         labels:
+            role: supervisor
             aliyun.scale: "3"
+        depends_on:
+            - nimbus
     topology:
         image: registry.aliyuncs.com/denverdino/storm-starter:1.0.0
         command: -c nimbus.host=nimbus jar /topology.jar org.apache.storm.starter.RollingTopWords production-topology remote
+        labels:
+            aliyun.depends: nimbus
         depends_on:
             - nimbus
