@@ -1,0 +1,61 @@
+version: '2'
+services:
+    zookeeper1:
+        image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
+        container_name: zk1.cloud
+        environment:
+            - SERVER_ID=1
+            - ADDITIONAL_ZOOKEEPER_1=server.1=0.0.0.0:2888:3888
+            - ADDITIONAL_ZOOKEEPER_2=server.2=zk2.cloud:2888:3888 
+            - ADDITIONAL_ZOOKEEPER_3=server.3=zk3.cloud:2888:3888
+    zookeeper2:
+        image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
+        container_name: zk2.cloud
+        environment:
+            - SERVER_ID=2
+            - ADDITIONAL_ZOOKEEPER_1=server.1=zk1.cloud:2888:3888
+            - ADDITIONAL_ZOOKEEPER_2=server.2=0.0.0.0:2888:3888 
+            - ADDITIONAL_ZOOKEEPER_3=server.3=zk3.cloud:2888:3888
+    zookeeper3:
+        image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
+        container_name: zk3.cloud
+        environment:
+            - SERVER_ID=3
+            - ADDITIONAL_ZOOKEEPER_1=server.1=zk1.cloud:2888:3888
+            - ADDITIONAL_ZOOKEEPER_2=server.2=zk2.cloud:2888:3888 
+            - ADDITIONAL_ZOOKEEPER_3=server.3=0.0.0.0:2888:3888
+    ui:
+        image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
+        command: ui -c nimbus.host=nimbus
+        environment:
+            - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
+        restart: always
+        container_name: ui
+        ports:
+            - 8080:8080
+    nimbus:
+        image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
+        command: nimbus -c nimbus.host=nimbus
+        restart: always
+        environment:
+            - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
+        container_name: nimbus
+        ports:
+            - 6627:6627
+    supervisor:
+        image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
+        command: supervisor -c nimbus.host=nimbus -c supervisor.slots.ports=[6700,6701,6702,6703]
+        restart: always
+        environment:
+            - affinity:role!=supervisor
+            - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
+        labels:
+            aliyun.scale: "3"
+    topology:
+        image: registry.aliyuncs.com/denverdino/storm-starter:1.0.0
+        command: -c nimbus.host=nimbus jar /topology.jar org.apache.storm.starter.RollingTopWords production-topology remote
+networks:
+  default:
+    external:
+      name: multi-host-network
+
