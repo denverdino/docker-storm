@@ -69,3 +69,11 @@ You can deploy the storm and application in Aliyun Container Service with docker
 ```
 ./build.sh
 ```
+
+
+## References
+
+* [Tutorial: Deploying Apache Storm on Docker Swarm](http://blog.baqend.com/post/142795871760/tutorial-deploying-apache-storm-on-docker-swarm)
+	* https://github.com/Baqend/docker-storm
+* [学习Docker容器网络模型 - 搭建分布式Zookeeper集群](https://yq.aliyun.com/articles/30328)
+	* https://github.com/denverdino/docker-zookeeper
