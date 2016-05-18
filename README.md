@@ -12,10 +12,19 @@ You can deploy the storm and application in local Docker environment
 docker network create multi-host-network
 ```
 
-#### Create the docker-compose project for Apache Storm
+#### Build Docker Image from storm-starter example topology  
+
+Example from [https://github.com/apache/storm/tree/master/examples/storm-starter](https://github.com/apache/storm/tree/master/examples/storm-starter)
 
 ```
 cd local
+docker-compose build
+```
+
+#### Create the docker-compose project for Apache Storm
+
+
+```
 docker-compose up -d
 docker-compose ps
 ```

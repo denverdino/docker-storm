@@ -8,9 +8,7 @@ services:
       - ADDITIONAL_ZOOKEEPER_1=server.1=0.0.0.0:2888:3888
       - ADDITIONAL_ZOOKEEPER_2=server.2=zk2.cloud:2888:3888 
       - ADDITIONAL_ZOOKEEPER_3=server.3=zk3.cloud:2888:3888
-      - affinity:role!=zookeeper
-    labels:
-      role: zookeeper
+      - constraint:aliyun.node_index==1
   zookeeper2:
     image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
     container_name: zk2.cloud
@@ -19,9 +17,7 @@ services:
       - ADDITIONAL_ZOOKEEPER_1=server.1=zk1.cloud:2888:3888
       - ADDITIONAL_ZOOKEEPER_2=server.2=0.0.0.0:2888:3888 
       - ADDITIONAL_ZOOKEEPER_3=server.3=zk3.cloud:2888:3888
-      - affinity:role!=zookeeper
-    labels:
-      role: zookeeper
+      - constraint:aliyun.node_index==2
   zookeeper3:
     image: registry.aliyuncs.com/denverdino/zookeeper:3.4.8
     container_name: zk3.cloud
@@ -30,14 +26,13 @@ services:
       - ADDITIONAL_ZOOKEEPER_1=server.1=zk1.cloud:2888:3888
       - ADDITIONAL_ZOOKEEPER_2=server.2=zk2.cloud:2888:3888 
       - ADDITIONAL_ZOOKEEPER_3=server.3=0.0.0.0:2888:3888
-      - affinity:role!=zookeeper
-    labels:
-      role: zookeeper
+      - constraint:aliyun.node_index==3
   ui:
     image: registry.aliyuncs.com/denverdino/baqend-storm:1.0.0
     command: ui -c nimbus.host=nimbus
     environment:
       - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
+      - constraint:server==manager
     restart: always
     container_name: ui
     labels: 
@@ -52,6 +47,7 @@ services:
     restart: always
     environment:
       - STORM_ZOOKEEPER_SERVERS=zk1.cloud,zk2.cloud,zk3.cloud
+      - constraint:server==manager
     container_name: nimbus
     ports:
       - 6627:6627
